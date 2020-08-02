@@ -28,6 +28,7 @@ import argparse
 import json
 import os
 import torch
+import sys
 
 #=====START: ADDED FOR DISTRIBUTED======
 from distributed import init_distributed, apply_gradient_allreduce, reduce_tensor
@@ -49,10 +50,10 @@ def load_checkpoint(checkpoint_path, model, optimizer):
           checkpoint_path, iteration))
     return model, optimizer, iteration
 
-def save_checkpoint(model, optimizer, learning_rate, iteration, filepath):
+def save_checkpoint(model, optimizer, learning_rate, iteration, filepath, device):
     print("Saving model and optimizer state at iteration {} to {}".format(
           iteration, filepath))
-    model_for_saving = WaveGlow(**waveglow_config).cuda()
+    model_for_saving = WaveGlow(**waveglow_config).to(device)
     model_for_saving.load_state_dict(model.state_dict())
     torch.save({'model': model_for_saving,
                 'iteration': iteration,
@@ -70,7 +71,11 @@ def train(num_gpus, rank, group_name, output_directory, epochs, learning_rate,
     #=====END:   ADDED FOR DISTRIBUTED======
 
     criterion = WaveGlowLoss(sigma)
-    model = WaveGlow(**waveglow_config).cuda()
+    model = WaveGlow(**waveglow_config)
+
+    device = torch.device("cpu") 
+    print('use device: %s' % device, file=sys.stderr)
+    model = model.to(device)
 
     #=====START: ADDED FOR DISTRIBUTED======
     if num_gpus > 1:
@@ -120,8 +125,8 @@ def train(num_gpus, rank, group_name, output_directory, epochs, learning_rate,
             model.zero_grad()
 
             mel, audio = batch
-            mel = torch.autograd.Variable(mel.cuda())
-            audio = torch.autograd.Variable(audio.cuda())
+            mel = torch.autograd.Variable(mel.to(device))
+            audio = torch.autograd.Variable(audio.to(device))
             outputs = model((mel, audio))
 
             loss = criterion(outputs)
@@ -147,7 +152,7 @@ def train(num_gpus, rank, group_name, output_directory, epochs, learning_rate,
                     checkpoint_path = "{}/waveglow_{}".format(
                         output_directory, iteration)
                     save_checkpoint(model, optimizer, learning_rate, iteration,
-                                    checkpoint_path)
+                                    checkpoint_path, device)
 
             iteration += 1
 
