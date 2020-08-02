@@ -74,6 +74,8 @@ def train(num_gpus, rank, group_name, output_directory, epochs, learning_rate,
     model = WaveGlow(**waveglow_config)
 
     device = torch.device("cpu") 
+    if torch.cuda.is_available():
+        device = torch.cuda.device(0)
     print('use device: %s' % device, file=sys.stderr)
     model = model.to(device)
 
