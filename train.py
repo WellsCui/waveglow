@@ -45,7 +45,7 @@ def load_checkpoint(checkpoint_path, model, optimizer):
     iteration = checkpoint_dict['iteration']
     optimizer.load_state_dict(checkpoint_dict['optimizer'])
     model_for_loading = checkpoint_dict['model']
-    model.load_state_dict(model_for_loading.state_dict())
+    model.load_state_dict(model_for_loading)
     print("Loaded checkpoint '{}' (iteration {})" .format(
           checkpoint_path, iteration))
     return model, optimizer, iteration
@@ -53,9 +53,8 @@ def load_checkpoint(checkpoint_path, model, optimizer):
 def save_checkpoint(model, optimizer, learning_rate, iteration, filepath, device):
     print("Saving model and optimizer state at iteration {} to {}".format(
           iteration, filepath))
-    model_for_saving = WaveGlow(**waveglow_config).to(device)
-    model_for_saving.load_state_dict(model.state_dict())
-    torch.save({'model': model_for_saving,
+    torch.save(model.state_dict(), filepath+'.model_state')
+    torch.save({'model': model.state_dict(),
                 'iteration': iteration,
                 'optimizer': optimizer.state_dict(),
                 'learning_rate': learning_rate}, filepath)
@@ -75,7 +74,7 @@ def train(num_gpus, rank, group_name, output_directory, epochs, learning_rate,
 
     device = torch.device("cpu") 
     if torch.cuda.is_available():
-        device = torch.cuda.device(0)
+        device = torch.device("cuda")
     print('use device: %s' % device, file=sys.stderr)
     model = model.to(device)
 
