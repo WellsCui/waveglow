@@ -1,23 +1,23 @@
 {
     "train_config": {
         "fp16_run": false,
-        "output_directory": "checkpoints",
+        "output_directory": "./drive/My Drive/ai/checkpoints",
         "epochs": 100000,
         "learning_rate": 1e-4,
         "sigma": 1.0,
-        "iters_per_checkpoint": 2000,
+        "iters_per_checkpoint": 2,
         "batch_size": 6,
         "seed": 1234,
-        "checkpoint_path": "",
+        "checkpoint_path": "./drive/My Drive/ai/checkpoints/waveglow_",
         "with_tensorboard": false
     },
     "data_config": {
         "training_files": "train_files.txt",
         "segment_length": 16000,
         "sampling_rate": 22050,
-        "filter_length": 1024,
+        "filter_length": 2048,
         "hop_length": 256,
-        "win_length": 1024,
+        "win_length": 2048,
         "mel_fmin": 0.0,
         "mel_fmax": 8000.0
     },

@@ -109,12 +109,13 @@ class WN(torch.nn.Module):
     size reset.  The dilation only doubles on each layer
     """
     def __init__(self, n_in_channels, n_mel_channels, n_layers, n_channels,
-                 kernel_size):
+                 kernel_size, global_condition_channels):
         super(WN, self).__init__()
         assert(kernel_size % 2 == 1)
         assert(n_channels % 2 == 0)
         self.n_layers = n_layers
         self.n_channels = n_channels
+        self.global_condition_channels = global_condition_channels
         self.in_layers = torch.nn.ModuleList()
         self.res_skip_layers = torch.nn.ModuleList()
 
@@ -151,7 +152,7 @@ class WN(torch.nn.Module):
             self.res_skip_layers.append(res_skip_layer)
 
     def forward(self, forward_input):
-        audio, spect = forward_input
+        audio, spect, global_condition = forward_input
         audio = self.start(audio)
         output = torch.zeros_like(audio)
         n_channels_tensor = torch.IntTensor([self.n_channels])
@@ -177,12 +178,12 @@ class WN(torch.nn.Module):
 
 class WaveGlow(torch.nn.Module):
     def __init__(self, n_mel_channels, n_flows, n_group, n_early_every,
-                 n_early_size, WN_config):
+                 n_early_size, WN_config, win_length, hop_length):
         super(WaveGlow, self).__init__()
 
         self.upsample = torch.nn.ConvTranspose1d(n_mel_channels,
                                                  n_mel_channels,
-                                                 1024, stride=256)
+                                                 win_length, stride=hop_length)
         assert(n_group % 2 == 0)
         self.n_flows = n_flows
         self.n_group = n_group

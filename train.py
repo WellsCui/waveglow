@@ -53,7 +53,8 @@ def load_checkpoint(checkpoint_path, model, optimizer):
 def save_checkpoint(model, optimizer, learning_rate, iteration, filepath, device):
     print("Saving model and optimizer state at iteration {} to {}".format(
           iteration, filepath))
-    torch.save(model.state_dict(), filepath+'.model_state')
+    # model_for_saving = WaveGlow(**waveglow_config).to(device)
+    # model_for_saving.load_state_dict(model.state_dict())
     torch.save({'model': model.state_dict(),
                 'iteration': iteration,
                 'optimizer': optimizer.state_dict(),
@@ -177,7 +178,11 @@ if __name__ == "__main__":
     global dist_config
     dist_config = config["dist_config"]
     global waveglow_config
-    waveglow_config = config["waveglow_config"]
+    waveglow_config = { 
+        **config["waveglow_config"], 
+        'win_length': data_config['win_length'],
+        'hop_length': data_config['hop_length']
+    }
 
     num_gpus = torch.cuda.device_count()
     if num_gpus > 1:
